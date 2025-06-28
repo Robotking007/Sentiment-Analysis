@@ -31,5 +31,5 @@ A professional web application for analyzing text sentiment (positive, negative,
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/sentiment-analysis.git
+   git clone http://github.com/Robotking007/Sentiment-Analysis
    cd sentiment-analysis

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis Tool</title>
+    <style>
+        /* CSS Styles */
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4CAF50;
+            --warning-color: #FFC107;
+            --danger-color: #F44336;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            font-size: 1.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+
+        .result-container {
+            display: none;
+            margin-top: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sentiment-result {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: var(--border-radius);
+        }
+
+        .positive {
+            background-color: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--success-color);
+        }
+
+        .neutral {
+            background-color: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .negative {
+            background-color: rgba(244, 67, 54, 0.1);
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .sentiment-emoji {
+            font-size: 2.5rem;
+        }
+
+        .sentiment-text {
+            flex: 1;
+        }
+
+        .sentiment-label {
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .polarity-bar {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .polarity-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .polarity-positive {
+            background-color: var(--success-color);
+        }
+
+        .polarity-neutral {
+            background-color: var(--warning-color);
+        }
+
+        .polarity-negative {
+            background-color: var(--danger-color);
+        }
+
+        .batch-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .batch-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .batch-input-group input {
+            flex: 1;
+        }
+
+        .remove-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            width: 40px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .remove-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .add-btn {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .add-btn:hover {
+            background-color: #388e3c;
+        }
+
+        .chart-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .chart-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--border-radius);
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .tab:hover:not(.active) {
+            border-bottom-color: #aaa;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sentiment Analysis Tool</h1>
+            <p class="subtitle">Analyze the emotional tone behind a body of text using AI</p>
+        </header>
+
+        <div class="app-container">
+            <div class="card">
+                <div class="tabs">
+                    <div class="tab active" data-tab="single">Single Text Analysis</div>
+                    <div class="tab" data-tab="batch">Batch Analysis</div>
+                </div>
+
+                <div class="tab-content active" id="single-tab">
+                    <h2 class="card-title"><i class="fas fa-comment-alt"></i> Analyze Single Text</h2>
+                    <div class="form-group">
+                        <label for="text-input">Enter your text to analyze:</label>
+                        <textarea id="text-input" placeholder="Type or paste your text here..."></textarea>
+                    </div>
+                    <button id="analyze-btn" class="btn btn-block">Analyze Sentiment</button>
+                    
+                    <div class="spinner" id="single-spinner"></div>
+                    
+                    <div class="result-container" id="single-result">
+                        <div class="sentiment-result" id="sentiment-display">
+                            <div class="sentiment-emoji" id="sentiment-emoji">😊</div>
+                            <div class="sentiment-text">
+                                <div class="sentiment-label" id="sentiment-label">Positive</div>
+                                <div>Polarity: <span id="polarity-value">0.75</span></div>
+                                <div class="polarity-bar">
+                                    <div class="polarity-fill polarity-positive" id="polarity-fill" style="width: 75%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="batch-tab">
+                    <h2 class="card-title"><i class="fas fa-list-ol"></i> Analyze Multiple Texts</h2>
+                    <div class="form-group">
+                        <label>Enter texts to analyze (one per line):</label>
+                        <div class="batch-inputs" id="batch-inputs-container">
+                            <div class="batch-input-group">
+                                <input type="text" class="batch-text-input" placeholder="Text 1">
+                                <button class="remove-btn"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <button id="add-input-btn" class="add-btn"><i class="fas fa-plus"></i> Add Another Text</button>
+                    </div>
+                    <button id="analyze-batch-btn" class="btn btn-block">Analyze All Texts</button>
+                    
+                    <div class="spinner" id="batch-spinner"></div>
+                    
+                    <div class="result-container" id="batch-result">
+                        <div class="chart-container">
+                            <img id="sentiment-chart" src="" alt="Sentiment Distribution">
+                        </div>
+                        <div id="batch-results-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-info-circle"></i> About Sentiment Analysis</h2>
+            <p>Sentiment analysis is the process of computationally identifying and categorizing opinions expressed in a piece of text, especially in order to determine whether the writer's attitude towards a particular topic, product, etc. is positive, negative, or neutral.</p>
+            <p>Our tool uses natural language processing (NLP) techniques to analyze your text and provide insights into the emotional tone behind it.</p>
+        </div>
+
+        <footer>
+            <p>© 2023 Sentiment Analysis Tool | Powered by Python, Flask, and TextBlob</p>
+        </footer>
+    </div>
+
+    <script>
+        // JavaScript for the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs and content
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding content
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+
+            // Add more input fields for batch analysis
+            const addInputBtn = document.getElementById('add-input-btn');
+            const batchInputsContainer = document.getElementById('batch-inputs-container');
+            
+            addInputBtn.addEventListener('click', function() {
+                const inputCount = batchInputsContainer.children.length + 1;
+                const newInputGroup = document.createElement('div');
+                newInputGroup.className = 'batch-input-group';
+                newInputGroup.innerHTML = `
+                    <input type="text" class="batch-text-input" placeholder="Text ${inputCount}">
+                    <button class="remove-btn"><i class="fas fa-times"></i></button>
+                `;
+                batchInputsContainer.appendChild(newInputGroup);
+                
+                // Add event listener to new remove button
+                newInputGroup.querySelector('.remove-btn').addEventListener('click', function() {
+                    if (batchInputsContainer.children.length > 1) {
+                        batchInputsContainer.removeChild(newInputGroup);
+                    } else {
+                        alert('You need at least one input field.');
+                    }
+                });
+            });
+
+            // Remove button event delegation
+            batchInputsContainer.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-btn') || e.target.closest('.remove-btn')) {
+                    const inputGroup = e.target.closest('.batch-input-group');
+                    if (batchInputsContainer.children.length > 1) {
+                        batchInputsContainer.removeChild(inputGroup);
+                    } else {
+                        alert('You need at least one input field.');
+                    }
+                }
+            });
+
+            // Single text analysis
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const textInput = document.getElementById('text-input');
+            const singleResult = document.getElementById('single-result');
+            const singleSpinner = document.getElementById('single-spinner');
+            
+            analyzeBtn.addEventListener('click', function() {
+                const text = textInput.value.trim();
+                
+                if (!text) {
+                    alert('Please enter some text to analyze.');
+                    return;
+                }
+                
+                // Show loading spinner
+                singleSpinner.style.display = 'block';
+                singleResult.style.display = 'none';
+                
+                // Send request to server
+                fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `text=${encodeURIComponent(text)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+                    
+                    // Update UI with results
+                    const sentimentLabel = document.getElementById('sentiment-label');
+                    const sentimentEmoji = document.getElementById('sentiment-emoji');
+                    const polarityValue = document.getElementById('polarity-value');
+                    const polarityFill = document.getElementById('polarity-fill');
+                    
+                    // Set sentiment class and emoji
+                    const sentimentClass = data.sentiment;
+                    document.getElementById('sentiment-display').className = `sentiment-result ${sentimentClass}`;
+                    polarityFill.className = `polarity-fill polarity-${sentimentClass}`;
+                    
+                    sentimentLabel.textContent = data.sentiment;
+                    sentimentEmoji.textContent = data.emoji;
+                    polarityValue.textContent = data.polarity;
+                    
+                    // Calculate polarity percentage (0 to 100)
+                    const polarityPercent = ((data.polarity + 1) / 2) * 100;
+                    polarityFill.style.width = `${polarityPercent}%`;
+                    
+                    // Show results
+                    singleResult.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while analyzing the text.');
+                })
+                .finally(() => {
+                    singleSpinner.style.display = 'none';
+                });
+            });
+
+            // Batch analysis
+            const analyzeBatchBtn = document.getElementById('analyze-batch-btn');
+            const batchResult = document.getElementById('batch-result');
+            const batchSpinner = document.getElementById('batch-spinner');
+            const batchResultsContainer = document.getElementById('batch-results-container');
+            const sentimentChart = document.getElementById('sentiment-chart');
+            
+            analyzeBatchBtn.addEventListener('click', function() {
+                const textInputs = document.querySelectorAll('.batch-text-input');
+                const texts = Array.from(textInputs).map(input => input.value.trim()).filter(text => text);
+                
+                if (texts.length === 0) {
+                    alert('Please enter at least one text to analyze.');
+                    return;
+                }
+                
+                // Show loading spinner
+                batchSpinner.style.display = 'block';
+                batchResult.style.display = 'none';
+                
+                // Prepare form data
+                const formData = new FormData();
+                texts.forEach(text => formData.append('texts[]', text));
+                
+                // Send request to server
+                fetch('/analyze_batch', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+                    
+                    // Display chart
+                    if (data.chart) {
+                        sentimentChart.src = `data:image/png;base64,${data.chart}`;
+                    }
+                    
+                    // Display individual results
+                    batchResultsContainer.innerHTML = '';
+                    data.results.forEach((result, index) => {
+                        const polarityPercent = ((result.polarity + 1) / 2) * 100;
+                        
+                        const resultElement = document.createElement('div');
+                        resultElement.className = `sentiment-result ${result.sentiment}`;
+                        resultElement.innerHTML = `
+                            <div class="sentiment-emoji">${
+                                result.sentiment === 'positive' ? '😊' : 
+                                result.sentiment === 'neutral' ? '😐' : '😞'
+                            }</div>
+                            <div class="sentiment-text">
+                                <div class="sentiment-label">${result.sentiment} (Text ${index + 1})</div>
+                                <div>Polarity: ${result.polarity}</div>
+                                <div class="polarity-bar">
+                                    <div class="polarity-fill polarity-${result.sentiment}" style="width: ${polarityPercent}%;"></div>
+                                </div>
+                                <div class="original-text"><small>"${result.text}"</small></div>
+                            </div>
+                        `;
+                        batchResultsContainer.appendChild(resultElement);
+                    });
+                    
+                    // Show results
+                    batchResult.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while analyzing the texts.');
+                })
+                .finally(() => {
+                    batchSpinner.style.display = 'none';
+                });
+            });
+
+            // Allow pressing Enter in single text analysis
+            textInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    e.preventDefault();
+                    analyzeBtn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
